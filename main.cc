@@ -8,26 +8,24 @@
 #include <stdlib.h>
 //#include "ray.h"    //was included in "device.h"
 //#include "device.h" //was included in "sort.h"
-#include "sort.h"
+#include "./sort.h"
 #include <string.h>
+#include <pthread.h>
 
 int h;
-int cs;
 
 void handler(int nsig){
     	if(nsig==SIGINT){
-        	close(cs);
         	close(h);
-        	printf("Shutting down\n");
+        	printf("\nShutting down\n");
         	exit(0);
     	}
 }
-
+void *func(void *arg);
 int main() 
 {
     	(void)signal(SIGINT, handler);
     	h = socket(PF_INET, SOCK_STREAM, 0);
-    	char buf[512];
     	if (h < 0){
         	perror("Creating socket");
     	}
@@ -45,24 +43,54 @@ int main()
         	close(h); 
         	return 2;
     	}
+        while(1)
+        {
     	struct sockaddr_in remote;
     	unsigned remoteLen=sizeof(remote);
+        int cs;
     	if((cs=accept(h, (sockaddr *)&remote, &remoteLen))<0){
         	perror("Accepting");
-        	return 3;
+        }
+        pthread_t thread;
+        if(pthread_create(&thread, NULL, func, &cs)<0)
+        {
+            perror("Thread: ");
     	}
-    	int rd;
+        }
+    	close(h);
+}
+
+void *func(void* arg)
+{
+int rd;
+char buf[512];
+int cs=*(int *)arg;
+	char buf_[32];
+
         vector <Device*> my_device;
         SCREEN *my_screen;
-        Laser *my_laser;
-
-    	sendto(cs, "1", 1, 0, (sockaddr *)&remote, remoteLen);
-    	while((rd=recvfrom(cs, buf, sizeof(buf), 0, (sockaddr *)&remote, &remoteLen))>0){
+        vector<LASER*> my_laser;
+        vector<SOURCE*> my_source;
+    	if(send(cs, "1", 1, MSG_NOSIGNAL)==-1)
+        {
+            perror("Can't send:");
+            return NULL;
+        }
+    	while((rd=recv(cs, buf, sizeof(buf), 0))>0){
         	buf[rd]=0;
         	printf("%s\n", buf);
                 int check = buf[0] - '0';
                 printf("check = %d\n", check);
                 switch(check){
+                    case 0:
+                    {
+                        float a1,x,y;
+                        sscanf(buf, "%f %f %f", &a1, &x, &y);
+                        SOURCE* d=new SOURCE(x,y);
+                        my_source.push_back(d);
+                        printf("New source was created\n");
+                        break;
+                    }
                         case 1: //screen
                                 {
                                 float a1, x1, y1, x2, y2;
@@ -80,21 +108,23 @@ int main()
                                 printf("New lens f>0 was created\n");
                                 break;
 				}
-			case 3:	//lens f<0
+/*			case 3:	//lens f<0
 				{
                                 float a1, x, y, l, deg, f;
                                 sscanf(buf, "%f %f %f %f %f %f",&a1,&x, &y, &l, &deg, &f);
-//                                Device  *d = new Lens(x, y, l, deg, f);
-//                                my_device.push_back(d);
+                                printf("%lf", f);
+                                Device  *d = new Lens(x, y, l, deg, f);
+                                my_device.push_back(d);
                                 printf("New lens f<0 was created\n");
 				break;
-				}
+				}*/
 			case 4:	//ploskoparallell plastinka
 				{
-                                float a1, x, y, len, wid, n;
-                                sscanf(buf, "%f %f %f %f %f %f",&a1,&x, &y, &len, &wid, &n);
-//                                Device  *d = new Lens(x, y, l, deg, f);
-//                                my_device.push_back(d);
+                                float a1, x, y, len, wid, n, angle;
+                                sscanf(buf, "%f %f %f %f %f %f %f",&a1,&x, &y, &len, &wid, &angle,&n);
+                                printf("POKAZ: %f", n);
+                                Device  *d = new Disc(x, y, len, wid, angle, n);
+                                my_device.push_back(d);
                                 printf("New ploskoparallell plastinka was created\n");
 				break;
 				}
@@ -102,11 +132,11 @@ int main()
                                 {
                                 float a1, x, y, deg;
                                 sscanf(buf, "%f %f %f %f", &a1,&x, &y, &deg);
-                                my_laser = new Laser(x, y, deg);
+                                my_laser.push_back(new LASER(x,y,deg));
 				printf("New laser was created\n");
                                 break;
                                 }
-			case 6:	//sphere mirror
+			case 7:	//sphere mirror
 				{
                                 float a1, x, y, r, deg1, deg2;
                                 sscanf(buf, "%f %f %f %f %f %f",&a1,&x, &y, &r, &deg1, &deg2);
@@ -115,7 +145,7 @@ int main()
                                 printf("New sphere mirror was created\n");
 				break;
 				}
-			case 7:	//mirror
+			case 3:	//mirror
 				{
                                 float a1, x, y, deg;
                                 sscanf(buf, "%f %f %f %f",&a1,&x, &y, &deg);
@@ -124,7 +154,7 @@ int main()
                                 printf("New mirror was created\n");
 				break;
 				}
-			case 8:	//triangle prism
+			case 6:	//triangle prism
 				{
                                 float a1, x1, y1, x2, y2, x3, y3, n;
                                 sscanf(buf, "%f %f %f %f %f %f %f %f",&a1,&x1, &y1, &x2, &y2, &x3, &y3, &n);
@@ -136,9 +166,13 @@ int main()
                 }
 		
         	fflush(stdout);
-		if (strcmp(buf, "FINISH\0")!=0{
+		if (strcmp(buf, "FINISH\0")!=0){
         	buf[0]=0;
-        	sendto(cs, "1", 1, 0, (sockaddr *)&remote, remoteLen);
+        	if(send(cs, "1", 1, MSG_NOSIGNAL)==-1)
+        {
+            perror("Can't send:");
+            return NULL;
+        }
 		}
 		else{
 			break;
@@ -148,7 +182,7 @@ int main()
 //first: пробегаем весь отсортированный массив девайсов. Первое пересечение -> break. Пусть пересекло первым второй девайс
 //Тогда запускаем новый пробег for 3 to n. И так далее пока не дошли до конца. Если мы успешно прошли весь цикл или сделали брейк на энтом, то
 //Запускаем проверку для выходного луча. Пересечет ли он экран? Если да, то в какой точке????. 
-//После нахождения каждой из точек отправляем Лене запись. write(wr, "точка1, точка 2", 3).
+//После нахождения каждой из точек отправляем Лёне запись. write(wr, "точка1, точка 2", 3).
 
 //	Here we need to sort vector my_device by x
 	sort_(my_device);	
@@ -157,39 +191,99 @@ int main()
  	point *cross = NULL;
 	int k = 0; //номер девайса
 	bool q = false; //true, если пересечения есть
-	char buf_[32];
+    char temp[1];
+    vector<RAY*>my_laser_ray;
+    for(int i=0; i<my_laser.size(); i++)
+    {
+        my_laser_ray.push_back(my_laser[i]->rays_create());
+    }
+//RAY *my_laser_ray=my_laser->rays_create();
+    for(int i=0; i<my_source.size(); i++)
+    {
+        RAY** rt=my_source[i]->rays_create();
+        for(int j=0; j<NUMBER; j++)
+        {
+            my_laser_ray.push_back(rt[j]);
+        }
+    }
 //let's work with laser first
+for(int I=0; I<my_laser_ray.size(); I++)
+{
+    cross=NULL;
+    k=0;
 	while (k < my_device.size()){
 		for (int i = k; i < my_device.size(); i++){	
 			//cross device;
-			cross = my_device[i]-> cross_point(my_laser->ray);
-			if (cross != NULL){
-				sprintf(buf_, "%f %f %f %f %c", my_laser->ray->x, my_laser->ray->y, cross->x, cross->y, '\0');//new dot
-				sendto (cs, buf_, strlen(buf_)+1, 0, (sockaddr *)&remote, remoteLen);
-				k = i + 1;
+            			cross = my_device[i]-> cross_point(my_laser_ray[I]);
+			if (cross != NULL)
+            {
+				sprintf(buf_, "%f %f %f %f %c", my_laser_ray[I]->x, my_laser_ray[I]->y, cross->x, cross->y, '\0');//new dot
+                printf("THIS IS RAY: %s\n", buf_);
+				if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1)
+                {
+                    perror("Can't send:");
+                    return NULL;
+                }
+                recv(cs, temp, 1, 0);
+                k = i + 1;
 				q = true;
-				my_laser->ray->x = cross->x;
-				my_laser->ray->y = cross->y;
+				/*my_laser_ray->x = cross->x;
+				my_laser_ray->y = cross->y;*/
+                float tx=cross->x;
+                float ty=cross->y;
+                my_device[i]->change_direction(my_laser_ray[I], cross);
+                if(my_device[i]->getID()==4)
+                {
+                    sprintf(buf_, "%f %f %f %f %c", tx, ty, my_laser_ray[I]->x, my_laser_ray[I]->y, 0);
+                    printf("THIS IS RAY: %s\n", buf_);
+				    if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1)
+                    {
+                        perror("Can't send:");
+                        return NULL;
+                    }
+                    recv(cs, temp, 1, 0);
+                }
 				break;
 			}
 		}
 		if (q == false){
+            printf("%d\n",I);
 			break;
 		}
 	}
+}
 	//cross screen
-	cross = NULL;
-	cross = my_screen->cross_point(my_laser->ray);
+    for(int I=0; I<my_laser_ray.size(); I++)
+    {
+    cross = NULL;
+	cross = my_screen->cross_point(my_laser_ray[I]);
 	if (cross != NULL){
-		sprintf(buf_, "%f %f %f %f %c", my_laser->ray->x, my_laser->ray->y, cross->x, cross->y, '\0');
-		sendto(cs, buf_, strlen(buf_)+1, 0, (sockaddr *)&remote, remoteLen);
+		sprintf(buf_, "%f %f %f %f %c", my_laser_ray[I]->x, my_laser_ray[I]->y, cross->x, cross->y, '\0');
+		if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1)
+                {
+            perror("Can't send:");
+            return NULL;
+        }
+        recv(cs, temp, 1, 0);
 	}
 	else{
 		//find граница, куда дойдет луч
 //		sprintf(buf_, "%f %f", );
 //		sprintf(buf_, "\0");		
-		sendto(cs, buf_, strlen(buf_)+1, 0, (sockaddr *)&remote, remoteLen);
+		if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1)
+                {
+            perror("Can't send:");
+            return NULL;
+        }
+recv(cs, temp, 1, 0);
 	}
+    }
+    if(send(cs, "FINISH\0", 7, MSG_NOSIGNAL)==-1)
+    {
+            perror("Can't send:");
+            return NULL;
+        }
+    while(recv(cs, buf_, sizeof(buf_)+1, 0)>0);
     	close(cs);
-    	close(h);
-}  
+        return NULL;
+        }

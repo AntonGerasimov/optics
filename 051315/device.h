@@ -5,7 +5,6 @@
 using namespace std;
 
 #define PI 3.14159265
-#define NUMBER 10            // HERE YOU CAN CHANGE NUMBER OF CREATED RAYS {360 : (NUMBBER - 1)}
 
 
 float LenVect(point *p1, point *p2) {
@@ -22,7 +21,6 @@ point *SumVect(point *p1, point *p2) {
         sum_p->y = p1->y + p2->y;
         return sum_p;
 }
-
 point *SubVect(point *p1, point *p2) {
         point *sub_p = new point;
         sub_p->x = p2->x - p1->x;
@@ -63,6 +61,7 @@ public:
     }
     virtual point * cross_point (RAY * r) const = 0;
 };
+
 class Disc : public Device{     // n > 1 !!!
 public:
     float  w,l,n, x3,y3, x4, y4, deg; // w - width
@@ -148,10 +147,15 @@ public:
                 p_y = p->y;
                 p->x = p_x * cos (this->deg * PI / 180) + p_y * sin (this->deg * PI / 180);
                 p->y = - p_x * sin (this->deg * PI / 180) + p_y * cos (this->deg * PI / 180);
+                
                 r_x = r->x;
                 r_y = r->y;
                 r->x = r_x * cos (this->deg * PI / 180) + r_y * sin (this->deg * PI / 180);
-                r->y = -r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->y = - r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->deg = deg + this->deg;
+                if (r->deg > 360)
+                    r->deg = r->deg - 360;
+                
                 return p;
             }
         }
@@ -167,10 +171,15 @@ public:
                 p_y = p->y;
                 p->x = p_x * cos (this->deg * PI / 180) + p_y * sin (this->deg * PI / 180);
                 p->y = - p_x * sin (this->deg * PI / 180) + p_y * cos (this->deg * PI / 180);
+                
                 r_x = r->x;
                 r_y = r->y;
                 r->x = r_x * cos (this->deg * PI / 180) + r_y * sin (this->deg * PI / 180);
-                r->y = -r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->y = - r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->deg = deg + this->deg;
+                if (r->deg > 360)
+                    r->deg = r->deg - 360;
+                
                 return p;
             }
         }
@@ -196,10 +205,15 @@ public:
                 p_y = p->y;
                 p->x = p_x * cos (this->deg * PI / 180) + p_y * sin (this->deg * PI / 180);
                 p->y = - p_x * sin (this->deg * PI / 180) + p_y * cos (this->deg * PI / 180);
+                
                 r_x = r->x;
                 r_y = r->y;
                 r->x = r_x * cos (this->deg * PI / 180) + r_y * sin (this->deg * PI / 180);
-                r->y = -r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->y = - r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->deg = deg + this->deg;
+                if (r->deg > 360)
+                    r->deg = r->deg - 360;
+                
                 return p;
             }
         }
@@ -220,30 +234,47 @@ public:
                 p_y = p->y;
                 p->x = p_x * cos (this->deg * PI / 180) + p_y * sin (this->deg * PI / 180);
                 p->y = - p_x * sin (this->deg * PI / 180) + p_y * cos (this->deg * PI / 180);
+                
                 r_x = r->x;
                 r_y = r->y;
                 r->x = r_x * cos (this->deg * PI / 180) + r_y * sin (this->deg * PI / 180);
-                r->y = -r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->y = - r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->deg = deg + this->deg;
+                if (r->deg > 360)
+                    r->deg = r->deg - 360;
+                
                 return p;
             }
         }
         
-        
+        r_x = r->x;
+        r_y = r->y;
+        r->x = r_x * cos (this->deg * PI / 180) + r_y * sin (this->deg * PI / 180);
+        r->y = - r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+        r->deg = deg + this->deg;
+        if (r->deg > 360)
+            r->deg = r->deg - 360;
         
         return NULL;
     }
     
     
     void change_direction(RAY * r, point * p ) const {
-        float p_x, p_y, r_x,r_y;
+        //cout<< "this->n = " << this->n << "\n";
+        float p_x, p_y, r_x, r_y;
         p_x = p->x;
         p_y = p->y;
         p->x = p_x * cos (this->deg * PI / 180) - p_y * sin (this->deg * PI / 180);
         p->y = p_x * sin (this->deg * PI / 180) + p_y * cos (this->deg * PI / 180);
+        
         r_x = r->x;
         r_y = r->y;
         r->x = r_x * cos (this->deg * PI / 180) - r_y * sin (this->deg * PI / 180);
         r->y = r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+        if (r->deg >= this->deg)
+            r->deg = r->deg - this->deg;
+        else
+            r->deg = 360 + r->deg -this->deg;
 
         point * new_p = p;
         float deg = 0;
@@ -341,6 +372,7 @@ public:
                         new_p->x = p->x - this->l * tan ( beta * PI / 180);
                     }
                     else {
+                        //cout << beta ;
                         beta = fabs (beta);
                         new_p->y = p->y - this->l;
                         new_p->x = p->x + this->l * tan ( beta * PI / 180);
@@ -391,7 +423,7 @@ public:
                 }
             }
         }
-        //cout << "beta = " << beta << "\n";
+    //    cout << "beta = " << beta << "\n";
         r->x = new_p->x * cos (this->deg * PI / 180) + new_p->y * sin (this->deg * PI / 180) ;
         r->y = new_p->y * cos (this->deg * PI / 180) - new_p->x * sin (this->deg * PI / 180);
         r->deg = deg + this->deg;
@@ -1114,6 +1146,7 @@ class SphereRefl        :       public Device {
                         float deg_t;
                         if (fabs(delta) < 0.1) {
                                 deg_t  = RadToGrad(atan((OptC->x - p->x) / (OptC->y - p->y)));
+      //                          if (OptC->x - p->x<0)deg_t +=180;
                                 deg_t = r->Deg360(deg_t);
 
                                 std::cout << "Sphere Point 1: x=" << p->x << " y=" << p->y << " Sphere Deg=" << deg_t << " deg1=" << deg1 << " deg2=" << deg2 << "\n";
@@ -1203,7 +1236,7 @@ public:
         point *p = new point();
                 float p_check = (r->x - p1->x) * (p2->y - p1->y) - (r->y - p1->y) * (p2->x - p1->x);    //      источник луча находится на грани призмы
                 if (fabs(p_check) < 0.1) return NULL;
-                float x1, y1, x2, y2, r1, r2, k_ray, b_ray;
+                float x1, y1, x2, y2, r1, r2;
                 float det, det1, det2;
                 float xp, yp;
 
@@ -1274,7 +1307,7 @@ public:
                 gran_vect.push_back(gran_t);
 
                 std::cout << "\n        Create Prism N: " << N << "\n";
-                for (int i = 0; i < P.size();i++) {
+                for (unsigned i = 0; i < P.size();i++) {
                         std::cout << "Point " << i << " x: " << P[i]->x << " y: " << P[i]->y << "\n";
                 }
                 std::cout << "Coeff_N: " << n_coeff << "\n";
@@ -1284,7 +1317,7 @@ public:
         point *p = NULL;
                 float len_min = 1e10;
 
-                for (int i = 0; i < gran_vect.size(); i++) {
+                for (unsigned i = 0; i < gran_vect.size(); i++) {
                         point *p_t = gran_vect[i]->cross_point(r);      //      проверка грани призмы и луча
                         if (p_t != NULL) {
                                 if (r->CheckRayPoint(p_t)) {
@@ -1313,7 +1346,7 @@ public:
         Gran *FindGran(point *pp) const
         {
                 float cos_a = 0;
-                for (int i=0; i < gran_vect.size(); i++) {                      //      нашли грань для точки p
+                for (unsigned i=0; i < gran_vect.size(); i++) {                      //      нашли грань для точки p
                         cos_a = gran_vect[i]->CheckPointCosA(pp);
                         if (fabs(cos_a + 1) < 0.1)
                         {

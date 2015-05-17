@@ -7,16 +7,17 @@ float min_(float x1, float x2){
 	else return x2;
 }
 void print_(vector <Device *> my_device){
-        for (int i = 0; i < my_device.size(); i++){
+        for (unsigned i = 0; i < my_device.size(); i++){
                 printf("%d:%f\n", i,min_(my_device[i]->x1, my_device[i]->x2));
         }
 	printf("\n");
 }
 void sort_(vector <Device *> my_device){
 //	print_(my_device);
-
-	for (int i = 0; i < my_device.size()-1; i++){
-		for (int j = i+1; j < my_device.size(); j++){
+if(my_device.size()>0)
+{
+	for (unsigned i = 0; i < my_device.size()-1; i++){
+		for (unsigned j = i+1; j < my_device.size(); j++){
 			if (min_(my_device[i]->x1, my_device[i]->x2) > min_(my_device[j]->x1, my_device[j]->x2)){
 				Device *d = my_device[j];
 				my_device[j] = my_device[i];
@@ -24,6 +25,7 @@ void sort_(vector <Device *> my_device){
 			}
 		}
 	}	
+}
 
 //	print_(my_device);
 }

@@ -6,7 +6,7 @@
 using namespace std;
 
 #define PI 3.14159265
-#define NUMBER 10            // HERE YOU CAN CHANGE NUMBER OF CREATED RAYS {360 : (NUMBBER - 1)}
+#define NUMBER 37            // HERE YOU CAN CHANGE NUMBER OF CREATED RAYS {360 : (NUMBBER - 1)}
 
 
 struct point  {
@@ -118,32 +118,65 @@ public:
     }
 };
 
-
 class SCREEN
 {
     public :
     float x1, x2, y1, y2,deg;
 public:
     SCREEN (float x, float y, float l_0, float deg_0) {
-        x1 = x - (float)(l_0/2) * sin (deg_0 * PI / 180);
-        x2 = x + (float)(l_0/2) * sin (deg_0 * PI / 180);
-        y1 = y - (float)(l_0/2) * cos (deg_0 * PI / 180);
-        y2 = y + (float)(l_0/2) * cos (deg_0 * PI / 180);
+        
+        float x_1 = x - (float)(l_0/2) * sin (deg_0 * PI / 180);
+        float x_2 = x + (float)(l_0/2) * sin (deg_0 * PI / 180);
+        float y_1 = y - (float)(l_0/2) * cos (deg_0 * PI / 180);
+        float y_2 = y + (float)(l_0/2) * cos (deg_0 * PI / 180);
+        
+        
         deg = deg_0;
+        
+        x1 = x_1 * cos (deg * PI / 180) - y_1 * sin (deg * PI / 180);
+        x2 = x_2 * cos (deg * PI / 180) - y_2 * sin (deg * PI / 180);
+        y1 = x_1 * sin (deg * PI / 180) + y_1 * cos (deg * PI / 180);
+        y2 = x_2 * sin (deg * PI / 180) + y_2 * cos (deg * PI / 180);
+        
     }
     void screen_pos()
     { cout << " x1 = " << x1 << " y1 = " << y1  << " x2 = " << x2 << " y2 = " << y2  <<"\n";}
     
     point * cross_point (RAY * r)  {
         point * p = new point  ();
+        float p_x, p_y;
+        float r_x, r_y;
+        r_x = r->x;
+        r_y = r->y;
+        r->x = r_x * cos (this->deg * PI / 180) - r_y * sin (this->deg * PI / 180);
+        r->y = r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+        if (r->deg >= this->deg)
+            r->deg = r->deg - this->deg;
+        else
+            r->deg = 360 + r->deg -this->deg;
+        
         if ((orient_ (this->x1,this->y1,this->x2,this->y2,r->x,r->y,1) < 0) && ((r->deg <= 90) || (r->deg >= 270))){
             float det = this->y2 - this->y1 - tan (r->deg * PI / 180) * (this->x1 - this->x2);
             float det_1 = this->y2 * this->x1 - this->y1 * this->x2 - (this->x1 - this->x2) * (r->y + tan (r->deg * PI / 180) * r->x);
             float det_2 = (this->y2 - this->y1) * (r->y + tan (r->deg * PI / 180) * r->x) - (this->y2 * this->x1 - this->y1 * this->x2) * tan (r->deg * PI / 180);
             p->x = (float)det_1/det;
             p->y = (float)det_2/det;
-            if (( p->x >= x1 ) && ( p->x <= x2 ) && ( p->y >= y1 ) && ( p->y <= y2 ))
+            if (( p->y >= y1 ) && ( p->y <= y2 )){
+                p_x = p->x;
+                p_y = p->y;
+                p->x = p_x * cos (this->deg * PI / 180) + p_y * sin (this->deg * PI / 180);
+                p->y = - p_x * sin (this->deg * PI / 180) + p_y * cos (this->deg * PI / 180);
+                
+                r_x = r->x;
+                r_y = r->y;
+                r->x = r_x * cos (this->deg * PI / 180) + r_y * sin (this->deg * PI / 180);
+                r->y = - r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->deg = deg + this->deg;
+                if (r->deg > 360)
+                    r->deg = r->deg - 360;
+                    delete r;
                 return p;
+            }
         }
         if ((orient_ (this->x1,this->y1,this->x2,this->y2,r->x,r->y,1) > 0) && ((r->deg >= 90) && (r->deg <= 270))) {
             float det = this->y2 - this->y1 - tan (r->deg * PI / 180) * (this->x1 - this->x2);
@@ -153,9 +186,32 @@ public:
             cout << "p->x = " << p->x << "\n" ;
             p->y = (float)det_2/det;
             cout << "p->x = " << p->x << "\n" ;
-            if (( p->x >= x1 ) && ( p->x <= x2 ) && ( p->y >= y1 ) && ( p->y <= y2 ))
+            if (( p->y >= y1 ) && ( p->y <= y2 )) {
+                p_x = p->x;
+                p_y = p->y;
+                p->x = p_x * cos (this->deg * PI / 180) + p_y * sin (this->deg * PI / 180);
+                p->y = - p_x * sin (this->deg * PI / 180) + p_y * cos (this->deg * PI / 180);
+                
+                r_x = r->x;
+                r_y = r->y;
+                r->x = r_x * cos (this->deg * PI / 180) + r_y * sin (this->deg * PI / 180);
+                r->y = - r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+                r->deg = deg + this->deg;
+                if (r->deg > 360)
+                    r->deg = r->deg - 360;
+                    delete r;
                 return p;
-        }        return NULL;
+            }
+        }
+        
+        r_x = r->x;
+        r_y = r->y;
+        r->x = r_x * cos (this->deg * PI / 180) + r_y * sin (this->deg * PI / 180);
+        r->y = - r_x * sin (this->deg * PI / 180) + r_y * cos (this->deg * PI / 180);
+        r->deg = deg + this->deg;
+        if (r->deg > 360)
+            r->deg = r->deg - 360;
+        return NULL;
     }
     
     ~SCREEN ()
@@ -163,7 +219,6 @@ public:
         cout << "Destructure of the screen" << "\n";
     }
 };
-
 /*class SCREEN
 {
 public :

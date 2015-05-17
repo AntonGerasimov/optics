@@ -9,6 +9,7 @@
 //#include "ray.h"    //was included in "device.h"
 //#include "device.h" //was included in "sort.h"
 #include "sort.h"
+#include <string.h>
 
 int h;
 int cs;
@@ -30,7 +31,7 @@ int main()
     	if (h < 0){
         	perror("Creating socket");
     	}
-    	const int PORT = 5555;
+    	const int PORT = 5678;
     	struct sockaddr_in local;
     	local.sin_family = PF_INET;
     	local.sin_port = htons(PORT);
@@ -135,8 +136,15 @@ int main()
                 }
 		
         	fflush(stdout);
+            if(strcmp(buf, "FINISH\0")!=0)
+            {
         	buf[0]=0;
         	sendto(cs, "1", 1, 0, (sockaddr *)&remote, remoteLen);
+            }
+            else
+            {
+                break;
+            }
     	}
 //	Let's imagine we have done it
 //first: пробегаем весь отсортированный массив девайсов. Первое пересечение -> break. Пусть пересекло первым второй девайс
@@ -159,7 +167,7 @@ int main()
 			cross = my_device[i]-> cross_point(my_laser->ray);
 			if (cross != NULL){
 				sprintf(buf_, "%f %f %f %f %c", my_laser->ray->x, my_laser->ray->y, cross->x, cross->y, '\0');//new dot
-				sendto (cs, buf_, 15, 0, (sockaddr *)&remote, remoteLen);
+				sendto (cs, buf_, strlen(buf_)+1, 0, (sockaddr *)&remote, remoteLen);
 				k = i + 1;
 				q = true;
 				my_laser->ray->x = cross->x;
@@ -176,13 +184,13 @@ int main()
 	cross = my_screen->cross_point(my_laser->ray);
 	if (cross != NULL){
 		sprintf(buf_, "%f %f %f %f %c", my_laser->ray->x, my_laser->ray->y, cross->x, cross->y, '\0');
-		sendto(cs, buf_, 15, 0, (sockaddr *)&remote, remoteLen);
+		sendto(cs, buf_, strlen(buf_)+1, 0, (sockaddr *)&remote, remoteLen);
 	}
 	else{
 		//find граница, куда дойдет луч
 //		sprintf(buf_, "%f %f", );
 //		sprintf(buf_, "\0");		
-		sendto(cs, buf_, 15, 0, (sockaddr *)&remote, remoteLen);
+		sendto(cs, buf_, strlen(buf_)+1, 0, (sockaddr *)&remote, remoteLen);
 	}
 
 

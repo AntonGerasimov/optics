@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "device.h"
+#include "./device.h"
 
 float min_(float x1, float x2){
 	if (x1 < x2)
