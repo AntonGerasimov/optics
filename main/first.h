@@ -2,7 +2,6 @@
 #include "device.h"
 #include <math.h>
 
-
 float min_(float x1, float x2){
 	if (x1 < x2)
 		return x1;
@@ -30,7 +29,7 @@ int comparePoint(point *p1, point *p2){
 	}
 	return 0;
 }
-int first(vector <Device *> d, RAY *r){
+int first(vector <Device *> d, RAY *r){ //Find first object that ray will cross
 	int ret = -1;
 	float x = r->x;
 	float y = r->y;
@@ -58,7 +57,7 @@ int first(vector <Device *> d, RAY *r){
 	}
 	return ret;
 }
-int first_s(vector <SCREEN *> d, RAY *r){
+int first_s(vector <SCREEN *> d, RAY *r){ //Find first screen that ray will cross
         int ret = -1;
         float x = r->x;
         float y = r->y;

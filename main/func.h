@@ -184,7 +184,7 @@ void *func(void* arg){
 			if (num != -1){
 				cross = my_device[num]->cross_point(my_laser_ray[I]);
                 		sprintf(buf_, "%f %f %f %f %c", my_laser_ray[I]->x, my_laser_ray[I]->y, cross->x, cross->y, '\0');//new dot
-//                		#pragma omp critical
+                		#pragma omp critical
 					{
 					if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1){
                     				perror("Can't send:");
