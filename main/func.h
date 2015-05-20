@@ -178,7 +178,7 @@ RAY **rt;
     	}
 }	
 int I, num; float tx, ty; int s_num; float retx, rety;
-#pragma omp parallel for private(I, num, status, cross, tx, ty, s_num, retx, rety)
+//#pragma omp parallel for private(I, num, status, cross, tx, ty, s_num, retx, rety)
 	for(I=0; I<my_laser_ray.size(); I++){
     	
 		while(1==1&&my_laser_ray[I]->TTL<50){
