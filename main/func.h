@@ -195,7 +195,7 @@ void *func(void* arg){
                 			}
 					if (status == 1)
 		        			recv(cs, temp, 1, 0);
-					}
+				//	}
 				if (status == -1)
 					break;
 		        	float tx=cross->x;
