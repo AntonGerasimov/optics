@@ -177,11 +177,12 @@ RAY **rt;
         	}
     	}
 }	
-//#pragma omp parallel for
+int num; float tx, ty; int s_num; float retx, rety;
+#pragma omp parallel for private(num, status, cross, tx, ty, s_num, retx, rety)
 	for(int I=0; I<my_laser_ray.size(); I++){
     	
 		while(1==1&&my_laser_ray[I]->TTL<50){
-			int num = first(my_device, my_laser_ray[I]);
+			num = first(my_device, my_laser_ray[I]);
 			if (num != -1){
 				cross = my_device[num]->cross_point(my_laser_ray[I]);
                 		sprintf(buf_, "%f %f %f %f %c", my_laser_ray[I]->x, my_laser_ray[I]->y, cross->x, cross->y, '\0');//new dot
@@ -199,8 +200,8 @@ RAY **rt;
 				//	}
 				if (status == -1)
 					break;
-		        	float tx=cross->x;
-		        	float ty=cross->y;
+		        	tx=cross->x;
+		        	ty=cross->y;
 		        	my_device[num]->change_direction(my_laser_ray[I], cross);
 	
 				my_laser_ray[I]->TTL++;
@@ -243,11 +244,11 @@ RAY **rt;
 		}
 		if (status == 1){
 			//cross screen
-	 		int s_num = first_s(my_screen, my_laser_ray[I]);
+	 		s_num = first_s(my_screen, my_laser_ray[I]);
 	 		if(my_laser_ray[I]->TTL<50){
 				if (s_num == -1){
 					//find граница, куда дойдет луч
-					float retx, rety;
+					retx, rety;
 					retx = my_laser_ray[I]->x + 2000 * cos(GradToRad(my_laser_ray[I]->deg));
 					rety = my_laser_ray[I]->y - 2000 * sin(GradToRad(my_laser_ray[I]->deg));
 					sprintf(buf_, "%f %f %f %f %c", my_laser_ray[I]->x, my_laser_ray[I]->y, retx, rety, '\0');
