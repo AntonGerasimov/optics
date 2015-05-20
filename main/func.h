@@ -166,11 +166,12 @@ void *func(void* arg){
     	}
 
 int i,j;
+RAY **rt;
 #pragma omp parallel
 {
-	#pragma omp for firstprivate(j) lastprivate(i)   	
+	#pragma omp for private(i, j, rt)    	
  	for(i=0; i<my_source.size(); i++){
-        	RAY** rt=my_source[i]->rays_create();
+        	rt=my_source[i]->rays_create();
         	for(j=0; j<NUMBER; j++){
             	my_laser_ray.push_back(rt[j]);
         	}
