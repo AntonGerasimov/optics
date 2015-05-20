@@ -1,8 +1,8 @@
 all: clean
-	g++ main.cc -o a -Wall -lpthread
+	g++ main.cc -o a -Wall -lpthread -fopenmp
 clean:
 	rm -r -f a OpticLabServer
 debug: clean
-	g++ main.cc -o a -Wall -lpthread -g
+	g++ main.cc -o a -Wall -lpthread -fopenmp -g
 release: clean
-	g++ main.cc -o OpticLabServer -Wall -lpthread -O3
+	g++ main.cc -o OpticLabServer -Wall -lpthread -fopenmp -O3
