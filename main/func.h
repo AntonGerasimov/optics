@@ -160,22 +160,22 @@ void *func(void* arg){
     	char temp[1];
     	vector<RAY*>my_laser_ray;
 	
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int i=0; i<my_laser.size(); i++){
         	my_laser_ray.push_back(my_laser[i]->rays_create());
     	}
 
-
-#pragma omp parallel for   
- 	for(int i=0; i<my_source.size(); i++){
+int i,j;
+#pragma omp parallel
+{
+	#pragma omp for firstprivate(j) lastprivate(i)   	
+ 	for(i=0; i<my_source.size(); i++){
         	RAY** rt=my_source[i]->rays_create();
-
-//#pragma omp parellel for
-        	for(int j=0; j<NUMBER; j++){
+        	for(j=0; j<NUMBER; j++){
             	my_laser_ray.push_back(rt[j]);
         	}
     	}
-
+}	
 //#pragma omp parallel for
 	for(int I=0; I<my_laser_ray.size(); I++){
     	
