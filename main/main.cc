@@ -1,4 +1,4 @@
-#include <sys/types.h>
+/*#include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -9,7 +9,7 @@
 //#include "ray.h"    //was included in "device.h"
 #include <string.h>
 #include <pthread.h>
-//#include "first.h"
+//#include "first.h"*/
 #include "func.h"
 
 int h;

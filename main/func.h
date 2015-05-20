@@ -130,6 +130,15 @@ void *func(void* arg){
                                 printf("New triangle prism was created\n");
 				break;
 				}
+			case 9:	//ellipse
+				{
+                                float a1, x, y, _len, f1_x, f1_y, f2_x, f2_y, _a;
+                                sscanf(buf, "%f %f %f %f %f %f %f %f %f",&a1, &x, &y, &_len, &f1_x, &f1_y, &f2_x, &f2_y, &_a);
+                                Device  *d = new Ellipse( x, y, _len, f1_x, f1_y, f2_x, f2_y, _a);
+                                my_device.push_back(d);
+                                printf("New Ellipse was created\n");
+				break;
+				}
                 }
 		
         	fflush(stdout);
@@ -175,14 +184,17 @@ void *func(void* arg){
 			if (num != -1){
 				cross = my_device[num]->cross_point(my_laser_ray[I]);
                 		sprintf(buf_, "%f %f %f %f %c", my_laser_ray[I]->x, my_laser_ray[I]->y, cross->x, cross->y, '\0');//new dot
-                		if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1){
+//                		#pragma omp critical
+					{
+					if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1){
                     			perror("Can't send:");
 //                    			return NULL;
 //					finish_(cs, status);
 					status = -1;	
 					break;				
-                		}
-		        	recv(cs, temp, 1, 0);
+                			}
+		        		recv(cs, temp, 1, 0);
+					}
 		        	float tx=cross->x;
 		        	float ty=cross->y;
 		        	my_device[num]->change_direction(my_laser_ray[I], cross);
