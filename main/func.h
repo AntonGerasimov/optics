@@ -166,7 +166,7 @@ void *func(void* arg){
     	}
 
 
-//#pragma omp parallel for   
+#pragma omp parallel for   
  	for(int i=0; i<my_source.size(); i++){
         	RAY** rt=my_source[i]->rays_create();
 
@@ -176,7 +176,7 @@ void *func(void* arg){
         	}
     	}
 
-#pragma omp parallel for
+//#pragma omp parallel for
 	for(int I=0; I<my_laser_ray.size(); I++){
     	
 		while(1==1&&my_laser_ray[I]->TTL<50){
@@ -184,8 +184,8 @@ void *func(void* arg){
 			if (num != -1){
 				cross = my_device[num]->cross_point(my_laser_ray[I]);
                 		sprintf(buf_, "%f %f %f %f %c", my_laser_ray[I]->x, my_laser_ray[I]->y, cross->x, cross->y, '\0');//new dot
-                		#pragma omp critical
-					{
+//                		#pragma omp critical
+//					{
 					if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1){
                     				perror("Can't send:");
 //                    				return NULL;
@@ -203,8 +203,6 @@ void *func(void* arg){
 		        	my_device[num]->change_direction(my_laser_ray[I], cross);
 	
 				my_laser_ray[I]->TTL++;
-				#pragma omp critical
-				{
 	                	if(my_device[num]->getID()==4){
 		            		sprintf(buf_, "%f %f %f %f %c", tx, ty, my_laser_ray[I]->x, my_laser_ray[I]->y, 0);
 					my_laser_ray[I]->TTL++;
@@ -218,7 +216,7 @@ void *func(void* arg){
 				if (status == 1)
 		            		recv(cs, temp, 1, 0);
                 		}
-				}
+				
 				if (status == -1)
 					break;
 				if (my_device[num]->getID()==5){
@@ -237,6 +235,7 @@ void *func(void* arg){
 		                	my_device[num]->change_direction(my_laser_ray[I], cross);
 				}
 			}
+//			}
 			else{
 				break;
 			}
