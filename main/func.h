@@ -177,9 +177,9 @@ RAY **rt;
         	}
     	}
 }	
-int I, num; float tx, ty; int s_num; float retx, rety;
-#pragma omp parallel for private(I, num, status, cross, tx, ty, s_num, retx, rety)
-	for(I=0; I<my_laser_ray.size(); I++){
+int num; float tx, ty; int s_num; float retx, rety;
+#pragma omp parallel for private(num, status, cross, tx, ty, s_num, retx, rety)
+	for(int I=0; I<my_laser_ray.size(); I++){
     	
 		while(1==1&&my_laser_ray[I]->TTL<50){
 			num = first(my_device, my_laser_ray[I]);
@@ -232,8 +232,8 @@ int I, num; float tx, ty; int s_num; float retx, rety;
 						break;
 		                	}
 		                	recv(cs, temp, 1, 0);
-		                	tx=cross->x;
-		                	ty=cross->y;
+		                	float tx=cross->x;
+		                	float ty=cross->y;
 		                	my_device[num]->change_direction(my_laser_ray[I], cross);
 				}
 			}
