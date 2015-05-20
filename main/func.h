@@ -187,19 +187,24 @@ void *func(void* arg){
 //                		#pragma omp critical
 					{
 					if(send(cs, buf_, strlen(buf_)+1, MSG_NOSIGNAL)==-1){
-                    			perror("Can't send:");
-//                    			return NULL;
-//					finish_(cs, status);
-					status = -1;	
-					break;				
+                    				perror("Can't send:");
+//                    				return NULL;
+//						finish_(cs, status);
+						status = -1;	
+//						break;				
                 			}
-		        		recv(cs, temp, 1, 0);
+					if (status == 1)
+		        			recv(cs, temp, 1, 0);
 					}
+				if (status == -1)
+					break;
 		        	float tx=cross->x;
 		        	float ty=cross->y;
 		        	my_device[num]->change_direction(my_laser_ray[I], cross);
 	
 				my_laser_ray[I]->TTL++;
+				#pragma omp critical
+				{
 	                	if(my_device[num]->getID()==4){
 		            		sprintf(buf_, "%f %f %f %f %c", tx, ty, my_laser_ray[I]->x, my_laser_ray[I]->y, 0);
 					my_laser_ray[I]->TTL++;
@@ -208,10 +213,14 @@ void *func(void* arg){
 	//                        		return NULL;
 	//					finish_(cs, status);
 						status = -1;
-						break;
+//						break;
 		            		}
-		            	recv(cs, temp, 1, 0);
+				if (status == 1)
+		            		recv(cs, temp, 1, 0);
                 		}
+				}
+				if (status == -1)
+					break;
 				if (my_device[num]->getID()==5){
 			                cross = my_device[num]->cross_point(my_laser_ray[I]);
 			                sprintf(buf_, "%f %f %f %f %c", my_laser_ray[I]->x, my_laser_ray[I]->y, cross->x, cross->y, '\0');//new dot
